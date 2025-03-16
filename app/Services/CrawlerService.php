@@ -15,29 +15,41 @@ class CrawlerService
      */
     public static function getDataFromUrl(string $url, bool $isDom = true)
     {
-        $client = new Client();
-        $response = $client->request('GET', $url, [
-            'headers' => [
-                'Accept' => $isDom ? 'text/html' : 'application/json',
-            ],
-            'verify' => false
+        $client = new Client([
+            'timeout' => 5.0,
+            'connect_timeout' => 3.0,
+            'verify' => false,
         ]);
-        if ($isDom) {
-            $htmlContent = $response->getBody()->getContents();
-            return new Crawler($htmlContent);
+    
+        try {
+            $promise = $client->getAsync($url, [
+                'headers' => [
+                    'Accept' => $isDom ? 'text/html' : 'application/json',
+                ],
+            ]);
+    
+            $response = $promise->wait();
+    
+            $contentType = $response->getHeaderLine('Content-Type');
+            $body = (string) $response->getBody();
+    
+            if ($isDom) {
+                return new Crawler($body);
+            }
+    
+            if (strpos($contentType, 'image') !== false) {
+                return $body;
+            }
+    
+            $jsonData = json_decode($body, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid JSON response: ' . json_last_error_msg());
+            }
+    
+            return $jsonData;
+        } catch (\Exception $e) {
+            return null;
         }
-
-        $contentType = $response->getHeaderLine('Content-Type');
-        if (strpos($contentType, 'image') !== false) {
-            return $response->getBody()->getContents();
-        }
-
-        $jsonData = json_decode($response->getBody()->getContents(), true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Invalid JSON response: ' . json_last_error_msg());
-        }
-
-        return $jsonData;
     }
 
     /**
