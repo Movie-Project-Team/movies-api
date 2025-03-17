@@ -4,13 +4,12 @@ namespace App\Models\DB;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Comments extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'movie_id', 'content', 'parent_id', 'is_approved'];
+    protected $fillable = ['profile_id', 'movie_id', 'content', 'parent_id', 'is_approved'];
 
     public function replies()
     {
@@ -22,9 +21,9 @@ class Comments extends Model
         return $this->belongsTo(Movies::class, 'movie_id');
     }
 
-    public function user()
+    public function profile()
     {
-        return $this->belongsTo(Profile::class, 'user_id', 'user_id');
+        return $this->belongsTo(Profile::class, 'profile_id');
     }
 
     public function parent()

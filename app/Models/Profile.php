@@ -18,4 +18,13 @@ class Profile extends BaseRepository
             ]
         ]);
     }
+    
+    public function getDetailById($id)
+    {
+        return $this->getData([
+            'type'  => '1',
+            'where' => [
+                'id' => $id
+        ]]);
+    }
 }
