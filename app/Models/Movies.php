@@ -59,4 +59,18 @@ class Movies extends BaseRepository
             ]
         ]);
     }
+
+    public function getRankingByType($type) 
+    {
+        $validTypes = ['view', 'vote_count', 'updated_at'];
+        $orderByField = in_array($type, $validTypes) ? $type : 'view';
+
+        return $this->getData([
+            'type' => 2,
+            'item' => 5,
+            'orderBy' => [
+                $orderByField => Constants::ORDER_BY_DESC
+            ]
+        ]);
+    }
 }
