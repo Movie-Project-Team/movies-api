@@ -73,4 +73,33 @@ class Movies extends BaseRepository
             ]
         ]);
     }
+
+    public function getListWatchHistory($profileId, $movieDuration = null)
+    {
+        $whereHas = [
+            [
+                'watchHistories',
+                function ($query) use ($profileId) {
+                    $query->where('profile_id', $profileId)
+                        ->where('time_process', '>', 0);;
+                }
+            ]
+        ];
+
+        $where = [];
+        if (!empty($movieDuration)) {
+            $threshold = 30; 
+            $where['time_process'] = ['<' , $movieDuration - $threshold];
+        }
+
+        return $this->getData([
+            'type' => 2,
+            'item' => 5,
+            'where' => $where,
+            'whereHas' => $whereHas,
+            'orderBy' => [
+                'updated_at' => Constants::ORDER_BY_DESC
+            ]
+        ]);
+    }
 }

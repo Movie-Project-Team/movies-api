@@ -20,6 +20,7 @@ class MovieLiteResource extends JsonResource
             'name' => $this->name,
             'season' => $this->season,
             'lang' => $this->lang,
+            'time' => $this->time,
             'esp_total' => $this->esp_total,
             'year' => $this->year,
             'slug' => $this->slug,
