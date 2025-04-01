@@ -49,19 +49,4 @@ class WatchHistoryController extends Controller
             return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
         }
     }
-
-    public function detail($profileId, $movieId)
-    {
-        try {
-            $data = CommonService::getModel('WatchHistory')->getDetailByProfileId($profileId, $movieId);
-
-            if (!$data) {
-                return $this->sendResponseApi(['code' => 404]);
-            }
-
-            return $this->sendResponseApi(['data' => new WatchHistoryResource($data), 'message' => 'Save process success', 'code' => 200]);
-        } catch (\Exception $e) {
-            return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
-        }
-    }
 }

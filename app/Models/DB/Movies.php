@@ -73,8 +73,8 @@ class Movies extends Model
         return $this->hasOne(Favourite::class, 'movie_id');
     }
 
-    public function watchHistories(): HasOne
+    public function watchHistories(): HasMany
     {
-        return $this->hasOne(WatchHistory::class, 'movie_id');
+        return $this->hasMany(WatchHistory::class, 'movie_id');
     }
 }
