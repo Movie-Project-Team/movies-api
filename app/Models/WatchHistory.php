@@ -26,4 +26,15 @@ class WatchHistory extends BaseRepository
             ]
         ]);
     }
+
+    public function getByProfileId($profileId, $movieId) 
+    {
+        return $this->getData([
+            'type' => 1,
+            'where' => [
+                'profile_id' => $profileId,
+                'movie_id' => $movieId 
+            ],
+        ]);
+    }
 }

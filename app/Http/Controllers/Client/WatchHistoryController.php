@@ -49,4 +49,18 @@ class WatchHistoryController extends Controller
             return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
         }
     }
+
+    /**
+     * Get List Profile by Account
+     */
+    public function detail($profileId, $movieId)
+    {
+        try {
+            $data = CommonService::getModel('WatchHistory')->getByProfileId($profileId, $movieId);
+
+            return $this->sendResponseApi(['data' => new WatchHistoryResource($data), 'message' => 'Get Success', 'code' => 200]);
+        } catch (\Exception $e) {
+            return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
+        }
+    }
 }

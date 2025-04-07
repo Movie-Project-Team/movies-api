@@ -41,12 +41,13 @@ class CommentController extends Controller
 
             if ($request->parentId) {
                 $parent = CommonService::getModel('Comments')->getDetailById($request->parentId);
+                $movie = CommonService::getModel('Movies')->getDetail($request->movieId);
 
                 $notification = CommonService::getModel('Notifications')->create([
                     'title' =>  "Bình luận mới",
-                    'message' => "Người dùng {$data->profile->name} đã trả lời bình luận của bạn về bộ phim {$parent->movie->title}!",
+                    'message' => "Người dùng {$data->profile->name} đã trả lời bình luận của bạn về bộ phim {$movie->title}!",
                     'type' => Constants::NOTIFICATON_TYPE_INFO,
-                    'link' => config('site.detail') . $parent->movie->slug
+                    'link' => config('site.detail') . $movie->slug
                 ]);
 
                 CommonService::getModel('UserNotification')->create([
