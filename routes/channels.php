@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Resources\Client\ProfileResource;
+use App\Services\CommonService;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Cache;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +16,14 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+// Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+//     return (int) $user->id === (int) $id;
+// });
+
+Broadcast::channel('room.{id}', function ($user, $id) {
+    $profileId = Cache::get('verified_profile_for_user_' . $user->id);
+    $profile = CommonService::getModel('Profile')->getDetail($profileId);
+    return new ProfileResource($profile);
 });
+
+

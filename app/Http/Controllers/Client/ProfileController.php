@@ -7,6 +7,7 @@ use App\Http\Requests\Client\ChangePasswordProfileRequest;
 use App\Http\Requests\Client\GetListProfileRequest;
 use App\Http\Requests\Client\GetProfileRequest;
 use App\Http\Requests\Client\VerifyPasswordProfileRequest;
+use Illuminate\Support\Facades\Cache;
 use App\Services\CommonService;
 
 class ProfileController extends Controller
@@ -80,6 +81,7 @@ class ProfileController extends Controller
             if (!$profile) {
                 return $this->sendResponseApi(['message' => 'Profile not found', 'code' => 404]);
             }
+            Cache::put('verified_profile_for_user_' . auth()->id(), $profile->id, now()->addMinutes(30));
 
             return $this->sendResponseApi(['data' => $profile, 'message' => 'Password is correct', 'code' => 200]);
         } catch (\Exception $e) {
