@@ -3,6 +3,8 @@
 namespace App\Models\DB;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Models\Notification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -57,6 +59,6 @@ class User extends Authenticatable
 
     public function notification(): BelongsToMany
     {
-        return $this->belongsToMany(Notification::class, 'notification_user', 'user_id', 'notification_id');
+        return $this->belongsToMany(Notification::class, 'user_notification', 'user_id', 'notification_id');
     }
 }

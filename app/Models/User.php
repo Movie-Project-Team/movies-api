@@ -14,6 +14,6 @@ class User extends BaseRepository
             'type'  => '1',
             'where' => [
                 'email' => $email
-            ]]);
+        ]]);
     }
 }

@@ -88,7 +88,9 @@ class CrawlMovieJob implements ShouldQueue
             return;
         }
 
-        CommonService::getModel('Movies')->upsert([$data], ['slug'], array_keys($data));
+        CommonService::getModel('Movies')->upsert([
+            'slug' => $movie['slug']
+        ], $data);
 
         Log::info("Crawl phim thành công: {$this->slug}");
     }

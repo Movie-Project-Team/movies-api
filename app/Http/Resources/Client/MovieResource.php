@@ -27,6 +27,7 @@ class MovieResource extends JsonResource
             'imdb' => $this->IMDb,
             'type' => $this->type, 
             'year' => $this->year,
+            'view' => $this->view,
             'slug' => $this->slug,
             'thumbnail' => $this->thumbnail,
             'poster' => $this->poster,

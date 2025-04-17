@@ -47,4 +47,36 @@ class MovieController extends Controller
             return $this->sendErrorApi($e->getMessage());
         }
     }
+
+    public function ranking($type)
+    {
+        try {
+            $data = CommonService::getModel('Movies')->getRankingByType($type);
+            if (!$data) {
+                return $this->sendErrorApi('Data not found');
+            }
+
+            return $this->sendResponseApi(['data' => MovieResource::collection($data), 'code' => 200]);
+        } catch (\Exception $e) {
+            Log::error('Error in get method', ['message' => $e->getMessage()]);
+    
+            return $this->sendErrorApi($e->getMessage());
+        }
+    }
+
+    public function recommend($id)
+    {
+        try {
+            $data = CommonService::getModel('Movies')->recommendList($id);
+            if (!$data) {
+                return $this->sendErrorApi('Data not found');
+            }
+
+            return $this->sendResponseApi(['data' => MovieResource::collection($data), 'code' => 200]);
+        } catch (\Exception $e) {
+            Log::error('Error in get method', ['message' => $e->getMessage()]);
+    
+            return $this->sendErrorApi($e->getMessage());
+        }
+    }
 }

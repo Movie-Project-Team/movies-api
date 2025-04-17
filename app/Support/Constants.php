@@ -39,4 +39,21 @@ final class Constants {
         self::PROFILE_NAME_ADULT,
         self::PROFILE_NAME_CHILD
     ];
+
+    public const NOTIFICATON_TYPE_INFO = 0;
+    public const NOTIFICATON_TYPE_ERROR = 1;
+
+    public const NOTIFICATION_TYPE_LIST = [
+        self::NOTIFICATON_TYPE_INFO,
+        self::NOTIFICATON_TYPE_ERROR
+    ];
+
+    // status room
+    public const ROOM_STATUS_OPEN = 0;
+    public const ROOM_STATUS_CLOSE = 1;
+
+    public const ROOM_STATUS_LIST = [
+        self::ROOM_STATUS_OPEN,
+        self::ROOM_STATUS_CLOSE
+    ];
 }
