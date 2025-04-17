@@ -10,6 +10,7 @@
         "guzzlehttp/promises": "^2.0",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.3",
+        "laravel/socialite": "^5.19",
         "laravel/tinker": "^2.8",
         "maatwebsite/excel": "*",
         "monolog/monolog": "^3.8",

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Client;
 
+use App\Events\RoomStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\VerifyPasswordRoomRequest;
 use App\Http\Resources\Client\RoomResource;
 use App\Services\CommonService;
+use App\Support\Constants;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
@@ -52,10 +53,63 @@ class RoomController extends Controller
             $room = CommonService::getModel('Room')->getDetail($request->roomId);
 
             if (!$room) {
-                return $this->sendResponseApi(['message' => 'Profile not found', 'code' => 404]);
+                return $this->sendResponseApi(['message' => 'Room not found', 'code' => 404]);
             }
 
             return $this->getDetailData(new RoomResource($room));
+        } catch (\Exception $e) {
+            return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
+        }
+    }
+
+    public function closeRoom(Request $request) {
+        try {
+            $room = CommonService::getModel('Room')->getByParam(['room_code' => $request->roomCode]);
+
+            if (!$room) {
+                return $this->sendResponseApi(['message' => 'Room not found', 'code' => 404]);
+            }
+
+            $room->update([
+                'status' => Constants::ROOM_STATUS_CLOSE
+            ]);
+
+            broadcast(new RoomStatusChanged($room))->toOthers();
+
+            return $this->sendResponseApi(['message' => 'Change Status Success']);
+        } catch (\Exception $e) {
+            return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
+        }
+    }
+
+    public function listClose(Request $request, $hostId) {
+        try {
+            $room = CommonService::getModel('Room')->getListClose($hostId);
+
+            return $this->sendResponseApi(['data' => RoomResource::collection($room), 'code' => 200]);
+        } catch (\Exception $e) {
+            return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
+        }
+    }
+
+    public function reOpenRoom(Request $request) {
+        try {
+            $room = CommonService::getModel('Room')->getByParam([
+                'room_code' => $request->roomCode, 
+                'host_id' => $request->hostId
+            ]);
+
+            if (!$room) {
+                return $this->sendResponseApi(['message' => 'Room not found', 'code' => 404]);
+            }
+
+            $room->update([
+                'status' => Constants::ROOM_STATUS_OPEN
+            ]);
+            
+            broadcast(new RoomStatusChanged($room))->toOthers();
+
+            return $this->sendResponseApi(['message' => 'Change Status Success']);
         } catch (\Exception $e) {
             return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
         }
