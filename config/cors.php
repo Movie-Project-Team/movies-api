@@ -21,7 +21,7 @@ return [
 
     'allowed_origins' => [
         "http://localhost:3000",
-        "https://dreamland-movie.netlify.app/",
+        "https://dreamland-movie.netlify.app",
     ],
 
     'allowed_origins_patterns' => ["*localhost*"],
