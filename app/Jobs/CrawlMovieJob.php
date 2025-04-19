@@ -43,7 +43,7 @@ class CrawlMovieJob implements ShouldQueue
     {
         Log::info("Bắt đầu crawl phim: {$this->slug}");
 
-        $detailUrl = config('crawler.detail_url');        
+        $detailUrl = config('crawler.detail_url');       
         
         try {
             $movieData = CrawlerService::getDataFromUrl($detailUrl . $this->slug, false);
@@ -88,10 +88,51 @@ class CrawlMovieJob implements ShouldQueue
             return;
         }
 
-        $dataup = CommonService::getModel('Movies')->upsert([
+        $movie_instance = CommonService::getModel('Movies')->upsert([
             'slug' => $movie['slug']
         ], $data);
 
-        Log::info("Crawl phim thành công: {$dataup}");
+        $server = $movieData['episodes'];
+
+        $dataS = [
+            'name' => $server[0]['server_name'],
+            'kind' => "Vietsub"
+        ];
+
+        $server_instance = CommonService::getModel('Server')->upsert([
+            'name' => $server[0]['server_name']
+        ], $dataS);
+
+        $episodes = $server[0]['server_data'];
+
+        // Log::info("hahahaha: " . json_encode($episodes[0]));
+
+        for ($i = 0; $i < count($episodes); $i++) {
+            $dataE = [
+                'movie_id' => $movie_instance['id'],
+                'title' => $episodes[$i]['filename'],
+                'slug' => $episodes[$i]['slug'],
+            ];
+
+            $episode_instance = CommonService::getModel('Episodes')->upsert([
+                'title' => $episodes[$i]['filename']
+            ], $dataE);
+
+            $dataSE = [
+                'episode_id' => $episode_instance['id'],
+                'server_id' => $server_instance['id'],
+                'name' => $episodes[$i]['name'],
+                'slug' => $episodes[$i]['slug'],
+                'filename' => $episodes[$i]['filename'],
+                'link_download' => $episodes[$i]['link_m3u8'],
+                'link_watch' => $episodes[$i]['link_embed']
+            ];
+
+            CommonService::getModel('ServerEpisode')->upsert([
+                'filename' => $episodes[$i]['filename']
+            ], $dataSE);
+        }
+
+        Log::info("Crawl phim thành công: {$this->slug}");
     }
 }

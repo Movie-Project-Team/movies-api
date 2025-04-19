@@ -41,7 +41,6 @@ class Movies extends Model
     {
         return $this->hasMany(Episodes::class, 'movie_id');
     }
-
     
     public function actors(): BelongsToMany
     {
@@ -76,5 +75,37 @@ class Movies extends Model
     public function watchHistories(): HasMany
     {
         return $this->hasMany(WatchHistory::class, 'movie_id');
+    }
+
+    // public function servers()
+    // {
+    //     return $this->hasManyThrough(
+    //         Server::class,
+    //         ServerEpisode::class,
+    //         'episode_id',
+    //         'id',         
+    //         'id',         
+    //         'server_id'   
+    //     );
+    // }
+
+    public function getServersGroupedByNameAttribute()
+    {
+        return $this->episodes
+            ->load('servers')
+            ->flatMap(function ($episode) {
+                return $episode->servers->map(function ($server) use ($episode) {
+                    $server->episode = $episode;
+                    return $server;
+                });
+            })
+            ->groupBy('name')
+            ->map(function ($items, $name) {
+                return (object)[
+                    'server_name' => $name,
+                    'server_data' => $items->values(),
+                ];
+            })
+            ->values();
     }
 }
