@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('server_episode', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('episode_id')->references('id')->on('espisodes')->onDelete('cascade');
+            $table->foreignId('episode_id')->references('id')->on('episodes')->onDelete('cascade');
             $table->foreignId('server_id')->references('id')->on('server')->onDelete('cascade');
             $table->string('name');
             $table->string('slug');
