@@ -16,12 +16,12 @@ return new class extends Migration
             $table->unsignedBigInteger('movie_id');
             $table->foreign('movie_id')->references('id')->on('movies');
             $table->integer('season')->nullable();
-            $table->text('title');
-            $table->integer('episode');
+            $table->text('title')->nullable();
+            $table->integer('episode')->nullable();
             $table->text('description')->nullable();
-            $table->dateTime('release_date');
+            $table->dateTime('release_date')->nullable();
             $table->text('slug');
-            $table->integer('duration');
+            $table->integer('duration')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->unsignedInteger('created_by')->nullable();
             $table->timestamp('updated_at')->nullable();
