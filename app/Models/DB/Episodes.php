@@ -31,4 +31,9 @@ class Episodes extends Model
     {
         return $this->belongsToMany(Server::class, 'server_episode', 'episode_id', 'server_id');
     }
+
+    public function episodeServers()
+    {
+        return $this->hasMany(ServerEpisode::class, 'episode_id');
+    }
 }

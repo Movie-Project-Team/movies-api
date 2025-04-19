@@ -21,4 +21,9 @@ class Server extends Model
     {
         return $this->belongsToMany(Episodes::class, 'server_episode', 'server_id', 'episode_id');
     }
+
+    public function episodeServers()
+    {
+        return $this->hasMany(ServerEpisode::class);
+    }
 }
