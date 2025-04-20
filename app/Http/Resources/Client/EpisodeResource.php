@@ -19,8 +19,8 @@ class EpisodeResource extends JsonResource
             'name' => $this->episode->episodeServers[0]->name ?? null,
             'slug' => $this->episode->episodeServers[0]->slug ?? null,
             'filename' => $this->episode->episodeServers[0]->filename ?? null,
-            'link_embed' => $this->episode->episodeServers[0]->link_watch ?? null,
-            'link_m3u8' => $this->episode->episodeServers[0]->link_download ?? null,
+            'link_watch' => $this->episode->episodeServers[0]->link_watch ?? null,
+            'link_download' => $this->episode->episodeServers[0]->link_download ?? null,
         ];
     }
 }
