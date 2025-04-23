@@ -60,10 +60,20 @@ class CrawlMovies extends Command
         }
 
         $totalMovies = count($slugs);
-        $jobs = [];
+        $this->info("Found $totalMovies movie slugs. Dispatching in batches...");
 
-        foreach ($slugs as $slug) {
-            $jobs[] = new CrawlMovieJob($slug);
+        $chunked = array_chunk($slugs, 500);
+        foreach ($chunked as $index => $chunk) {
+            $jobs = [];
+            foreach ($chunk as $slug) {
+                $jobs[] = new CrawlMovieJob($slug);
+            }
+
+            Bus::batch($jobs)
+                ->name("crawl_movies_batch_{$index}")
+                ->dispatch();
+
+            $this->info("Batch #{$index} dispatched with " . count($jobs) . " jobs.");
         }
 
         $this->info("Preparing to dispatch " . count($jobs) . " crawl jobs...");
