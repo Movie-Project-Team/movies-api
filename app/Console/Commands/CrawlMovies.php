@@ -66,6 +66,8 @@ class CrawlMovies extends Command
             $jobs[] = new CrawlMovieJob($slug);
         }
 
+        $this->info("Preparing to dispatch " . count($jobs) . " crawl jobs...");
+
         if (!empty($jobs)) {
             Bus::batch($jobs)->dispatch();
             $this->info("Dispatched " . count($jobs) . " jobs to the queue.");
@@ -79,14 +81,14 @@ class CrawlMovies extends Command
         $successRate = ($totalMovies > 0) ? ($this->successCount / $totalMovies) * 100 : 0;
 
         CommonService::getModel('CrawlMovieLog')->upsert([
-            [
-                'date' => Carbon::now(),
-                'total_movies' => $totalMovies,
-                'success' => $this->successCount,
-                'failed' => $this->failedCount,
-                'success_rate' => $successRate
-            ]
-        ], ['date'], ['total_movies', 'success', 'failed', 'success_rate']);
+            'date' => Carbon::now(),
+        ], [
+            'date' => Carbon::now(),
+            'total_movies' => $totalMovies,
+            'success' => $this->successCount,
+            'failed' => $this->failedCount,
+            'success_rate' => $successRate
+        ]);
 
         $this->info('Crawling process completed.');
 

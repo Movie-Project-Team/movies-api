@@ -19,4 +19,9 @@ class Profile extends Model
         'phone',
         'password',
     ];
+
+    public function favorites()
+    {
+        return $this->belongsToMany(Movies::class, 'favorite', 'profile_id', 'movie_id')->withTimestamps();
+    }
 }

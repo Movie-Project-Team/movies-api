@@ -11,17 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('episodes', function (Blueprint $table) {
+        Schema::create('favorite', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('movie_id');
-            $table->foreign('movie_id')->references('id')->on('movies');
-            $table->integer('season')->nullable();
-            $table->text('title')->nullable();
-            $table->integer('episode')->nullable();
-            $table->text('description')->nullable();
-            $table->dateTime('release_date')->nullable();
-            $table->text('slug');
-            $table->integer('duration')->nullable();
+            $table->unsignedBigInteger('profile_id');
+            $table->foreign('movie_id')->references('id')->on('movies')->onDelete('cascade');
+            $table->foreign('profile_id')->references('id')->on('profile')->onDelete('cascade');
             $table->timestamp('created_at')->nullable();
             $table->unsignedInteger('created_by')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -36,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('episodes');
+        Schema::dropIfExists('favourite');
     }
 };
