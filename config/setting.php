@@ -3,7 +3,7 @@
 return [
 
     'site' => [
-        'name' => 'Phim Súc Vật', 
+        'name' => 'Dreamland Movie', 
         'contact' => 'support@example.com', 
         'url' => 'https://example.com',
     ],

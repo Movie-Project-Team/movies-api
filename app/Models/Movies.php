@@ -54,11 +54,26 @@ class Movies extends BaseRepository
 
     public function getDetailBySlug($slug)
     {
+        $whereHas = [
+            [
+                'episodes',
+                function ($query) {
+                    $query->whereHas('episodeServers');
+                }
+            ],
+        ];
+
+        $with = [
+            'episodes.servers',
+        ];
+
         return $this->getData([
             'type' => 1,
             'where' => [
                 'slug' => $slug
-            ]
+            ],
+            'whereHas' => $whereHas,
+            'with' => $with
         ]);
     }
 
