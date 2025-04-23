@@ -45,7 +45,7 @@ class CrawlMovies extends Command
     public function handle()
     {
         $url = Config::get('crawler.movies_url');
-        $pages = 10;
+        $pages = 1214;
         $this->info('Starting movie data crawl...');
 
         if (CrawlerService::isBlockedByRobotsTxt($url)) {
