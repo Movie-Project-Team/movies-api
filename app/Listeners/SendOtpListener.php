@@ -28,6 +28,8 @@ class SendOtpListener implements ShouldQueue
 
         $user->notify(new MailTemplate('send_otp',[
             'code' => $otp,
+            'name' => $event->user->email,
+            'time' => 1
         ]));
     }
 }

@@ -25,6 +25,7 @@ class Profile extends BaseRepository
             'type'  => '1',
             'where' => [
                 'id' => $id
-        ]]);
+            ]
+        ]);
     }
 }
