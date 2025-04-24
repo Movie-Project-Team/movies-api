@@ -43,8 +43,8 @@ class CrawlMovieJob implements ShouldQueue
     {
         Log::info("Bắt đầu crawl phim: {$this->slug}");
 
-        $detailUrl = config('crawler.detail_url');       
-        
+        $detailUrl = config('crawler.detail_url');
+
         try {
             $movieData = CrawlerService::getDataFromUrl($detailUrl . $this->slug, false);
         } catch (\Exception $e) {
@@ -105,8 +105,6 @@ class CrawlMovieJob implements ShouldQueue
 
         $episodes = $server[0]['server_data'];
 
-        // Log::info("hahahaha: " . json_encode($episodes[0]));
-
         for ($i = 0; $i < count($episodes); $i++) {
             $dataE = [
                 'movie_id' => $movie_instance['id'],
@@ -132,7 +130,11 @@ class CrawlMovieJob implements ShouldQueue
                 'filename' => $episodes[$i]['filename']
             ], $dataSE);
         }
-
+        foreach ($movie['category'] as $cate) {
+            CommonService::getModel('Genres')->createOrPass([
+                'filename' => $episodes[$i]['filename']
+            ], $dataSE);
+        }
         Log::info("Crawl phim thành công: {$this->slug}");
     }
 }
