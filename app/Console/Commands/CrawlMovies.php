@@ -45,7 +45,7 @@ class CrawlMovies extends Command
     public function handle()
     {
         $url = Config::get('crawler.movies_url');
-        $pages = 1214;
+        $pages = 10;
         $this->info('Starting movie data crawl...');
 
         if (CrawlerService::isBlockedByRobotsTxt($url)) {
@@ -76,12 +76,6 @@ class CrawlMovies extends Command
             $this->info("Batch #{$index} dispatched with " . count($jobs) . " jobs.");
         }
 
-        $this->info("Preparing to dispatch " . count($jobs) . " crawl jobs...");
-
-        if (!empty($jobs)) {
-            Bus::batch($jobs)->dispatch();
-            $this->info("Dispatched " . count($jobs) . " jobs to the queue.");
-        }
 
         $this->info("Queue worker started!");
         exec('php artisan queue:work -vv --stop-when-empty');
@@ -103,7 +97,7 @@ class CrawlMovies extends Command
         $this->info('Crawling process completed.');
 
         $fileName = 'crawl_movie_log_' . Carbon::now()->format('Ymd_His') . '.xlsx';
-        Excel::store(new CrawlerExport(app(CrawlMovieLog::class)), $fileName, 'local');
+        Excel::store(new CrawlerExport(app(CrawlMovieLog::class)), $fileName, 'public');
 
         $this->info("Exported Excel report: $fileName");
     }

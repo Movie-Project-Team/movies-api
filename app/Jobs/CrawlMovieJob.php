@@ -131,34 +131,52 @@ class CrawlMovieJob implements ShouldQueue
 
         $episodes = $server[0]['server_data'];
 
-        // Log::info("hahahaha: " . json_encode($episodes[0]));
-
         for ($i = 0; $i < count($episodes); $i++) {
             $dataE = [
                 'movie_id' => $movie_instance['id'],
-                'title' => $episode['filename'],
-                'slug' => $episode['slug'],
+                'title' => $episodes['filename'],
+                'slug' => $episodes['slug'],
             ];
 
             $episode_instance = CommonService::getModel('Episodes')->upsert([
-                'title' => $episode['filename']
+                'title' => $episodes['filename']
             ], $dataE);
 
             $dataSE = [
-                'episode_id' => $episode_instance['id'],
+                'episodes_id' => $episode_instance['id'],
                 'server_id' => $server_instance['id'],
-                'name' => $episode['name'],
-                'slug' => $episode['slug'],
-                'filename' => $episode['filename'],
-                'link_download' => $episode['link_m3u8'],
-                'link_watch' => $episode['link_embed']
+                'name' => $episodes['name'],
+                'slug' => $episodes['slug'],
+                'filename' => $episodes['filename'],
+                'link_download' => $episodes['link_m3u8'],
+                'link_watch' => $episodes['link_embed']
             ];
 
             CommonService::getModel('ServerEpisode')->upsert([
-                'filename' => $episode['filename']
+                'filename' => $episodes['filename']
             ], $dataSE);
         }
 
-        Log::info("Crawl phim thành công: {$this->slug}");
+        $this->logger->info("==================== BẮT ĐẦU CRAWL GENRE ====================");
+        foreach ($movie['category'] as $genre) {
+            $genre_instance = CommonService::getModel(modelName: 'Genres')->createOrPass([
+                'slug' => $genre['slug']
+            ], ['title' => $genre['name'], 'slug' => $genre['slug']]);
+            CommonService::getModel(modelName: 'MovieGenre')->create([
+                'genre_id' => $genre_instance['id'],
+                'movie_id' => $movie_instance['id']
+            ]);
+        }
+
+        $this->logger->info("==================== BẮT ĐẦU CRAWL LANGUAGE ====================");
+        foreach ($movie['country'] as $lang) {
+            $lang_instance = CommonService::getModel(modelName: 'Languages')->createOrPass([
+                'slug' => $lang['slug']
+            ], ['title' => $lang['name'], 'slug' => $lang['slug']]);
+            CommonService::getModel(modelName: 'MovieLanguage')->create([
+                'language_id' => $lang_instance['id'],
+                'movie_id' => $movie_instance['id']
+            ]);
+        }
     }
 }
