@@ -4,56 +4,74 @@ namespace App\Jobs;
 
 use App\Services\CommonService;
 use App\Services\CrawlerService;
-use GuzzleHttp\Client;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Level;
 
 class CrawlMovieJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, Batchable;
+
     public $slug;
 
-    /**
-     * Số lần retry nếu job thất bại
-     */
     public $tries = 2;
-
-    /**
-     * Thời gian delay trước khi retry (giây)
-     */
     public $backoff = 5;
 
-    /**
-     * Tạo job mới
-     */
+    protected $logger;
+
     public function __construct($slug)
     {
         $this->slug = $slug;
     }
 
-    /**
-     * Xử lý công việc crawl
-     */
+    protected function initLogger()
+    {
+        $datetime = now()->format('Y-m-d');
+        $logPath = storage_path("logs/crawlers/crawler-{$datetime}.log");
+
+        // Tạo thư mục nếu chưa có
+        if (!is_dir(dirname($logPath))) {
+            mkdir(dirname($logPath), 0777, true);
+        }
+
+        $output = "[%datetime%] %level_name%: %message%\n";
+        $formatter = new LineFormatter($output, null, true, true);
+
+        $logger = new Logger('crawler');
+        $stream = new StreamHandler($logPath, Level::Debug);
+        $stream->setFormatter($formatter);
+        $logger->pushHandler($stream);
+
+        return $logger;
+    }
+
     public function handle()
     {
-        Log::info("Bắt đầu crawl phim: {$this->slug}");
+        $this->logger = $this->initLogger();
+
+        $this->logger->info("==================== BẮT ĐẦU CRAWL PHIM ====================");
+        $this->logger->info("[Bắt đầu crawl] Slug: {$this->slug}");
 
         $detailUrl = config('crawler.detail_url');
 
         try {
             $movieData = CrawlerService::getDataFromUrl($detailUrl . $this->slug, false);
         } catch (\Exception $e) {
-            Log::error("Lỗi khi lấy dữ liệu phim {$this->slug}: " . $e->getMessage());
+            $this->logger->error("[Dữ liệu phim không hợp lệ] Slug: {$this->slug} | " . $e->getMessage());
+            $this->logger->info("==================== KẾT THÚC PHIM ====================\n");
             return;
         }
 
         if (empty($movieData['movie'])) {
-            Log::warning("Không tìm thấy dữ liệu cho phim: {$this->slug}");
+            $this->logger->warning("[Không có dữ liệu] Slug: {$this->slug}");
+            $this->logger->info("==================== KẾT THÚC PHIM ====================\n");
             return;
         }
 
@@ -84,7 +102,8 @@ class CrawlMovieJob implements ShouldQueue
         ];
 
         if (empty($data['title']) || empty($data['slug'])) {
-            Log::error("Dữ liệu phim không hợp lệ, bỏ qua: {$this->slug}");
+            $this->logger->error("[Dữ liệu phim không hợp lệ] Slug: {$this->slug}");
+            $this->logger->info("==================== KẾT THÚC PHIM ====================\n");
             return;
         }
 
@@ -92,7 +111,14 @@ class CrawlMovieJob implements ShouldQueue
             'slug' => $movie['slug']
         ], $data);
 
-        $server = $movieData['episodes'];
+        $this->logger->info("[Phim đã lưu] Slug: {$this->slug} | Tên phim: {$movie['name']}");
+
+        $server = $movieData['episodes'] ?? [];
+        if (empty($server)) {
+            $this->logger->warning("[Không có server episodes] Slug: {$this->slug}");
+            $this->logger->info("==================== KẾT THÚC PHIM ====================\n");
+            return;
+        }
 
         $dataS = [
             'name' => $server[0]['server_name'],
@@ -105,36 +131,34 @@ class CrawlMovieJob implements ShouldQueue
 
         $episodes = $server[0]['server_data'];
 
+        // Log::info("hahahaha: " . json_encode($episodes[0]));
+
         for ($i = 0; $i < count($episodes); $i++) {
             $dataE = [
                 'movie_id' => $movie_instance['id'],
-                'title' => $episodes[$i]['filename'],
-                'slug' => $episodes[$i]['slug'],
+                'title' => $episode['filename'],
+                'slug' => $episode['slug'],
             ];
 
             $episode_instance = CommonService::getModel('Episodes')->upsert([
-                'title' => $episodes[$i]['filename']
+                'title' => $episode['filename']
             ], $dataE);
 
             $dataSE = [
                 'episode_id' => $episode_instance['id'],
                 'server_id' => $server_instance['id'],
-                'name' => $episodes[$i]['name'],
-                'slug' => $episodes[$i]['slug'],
-                'filename' => $episodes[$i]['filename'],
-                'link_download' => $episodes[$i]['link_m3u8'],
-                'link_watch' => $episodes[$i]['link_embed']
+                'name' => $episode['name'],
+                'slug' => $episode['slug'],
+                'filename' => $episode['filename'],
+                'link_download' => $episode['link_m3u8'],
+                'link_watch' => $episode['link_embed']
             ];
 
             CommonService::getModel('ServerEpisode')->upsert([
-                'filename' => $episodes[$i]['filename']
+                'filename' => $episode['filename']
             ], $dataSE);
         }
-        foreach ($movie['category'] as $cate) {
-            CommonService::getModel('Genres')->createOrPass([
-                'filename' => $episodes[$i]['filename']
-            ], $dataSE);
-        }
+
         Log::info("Crawl phim thành công: {$this->slug}");
     }
 }

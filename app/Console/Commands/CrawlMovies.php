@@ -45,7 +45,7 @@ class CrawlMovies extends Command
     public function handle()
     {
         $url = Config::get('crawler.movies_url');
-        $pages = 10;
+        $pages = 1214;
         $this->info('Starting movie data crawl...');
 
         if (CrawlerService::isBlockedByRobotsTxt($url)) {
@@ -60,11 +60,23 @@ class CrawlMovies extends Command
         }
 
         $totalMovies = count($slugs);
-        $jobs = [];
+        $this->info("Found $totalMovies movie slugs. Dispatching in batches...");
 
-        foreach ($slugs as $slug) {
-            $jobs[] = new CrawlMovieJob($slug);
+        $chunked = array_chunk($slugs, 500);
+        foreach ($chunked as $index => $chunk) {
+            $jobs = [];
+            foreach ($chunk as $slug) {
+                $jobs[] = new CrawlMovieJob($slug);
+            }
+
+            Bus::batch($jobs)
+                ->name("crawl_movies_batch_{$index}")
+                ->dispatch();
+
+            $this->info("Batch #{$index} dispatched with " . count($jobs) . " jobs.");
         }
+
+        $this->info("Preparing to dispatch " . count($jobs) . " crawl jobs...");
 
         if (!empty($jobs)) {
             Bus::batch($jobs)->dispatch();
@@ -79,14 +91,14 @@ class CrawlMovies extends Command
         $successRate = ($totalMovies > 0) ? ($this->successCount / $totalMovies) * 100 : 0;
 
         CommonService::getModel('CrawlMovieLog')->upsert([
-            [
-                'date' => Carbon::now(),
-                'total_movies' => $totalMovies,
-                'success' => $this->successCount,
-                'failed' => $this->failedCount,
-                'success_rate' => $successRate
-            ]
-        ], ['date'], ['total_movies', 'success', 'failed', 'success_rate']);
+            'date' => Carbon::now(),
+        ], [
+            'date' => Carbon::now(),
+            'total_movies' => $totalMovies,
+            'success' => $this->successCount,
+            'failed' => $this->failedCount,
+            'success_rate' => $successRate
+        ]);
 
         $this->info('Crawling process completed.');
 

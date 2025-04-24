@@ -7,8 +7,10 @@ use App\Http\Requests\Client\ChangePasswordProfileRequest;
 use App\Http\Requests\Client\GetListProfileRequest;
 use App\Http\Requests\Client\GetProfileRequest;
 use App\Http\Requests\Client\VerifyPasswordProfileRequest;
-use Illuminate\Support\Facades\Cache;
+use App\Http\Resources\Client\FavouriteResource;
+use App\Http\Resources\Client\ProfileResource;
 use App\Services\CommonService;
+use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
@@ -37,7 +39,7 @@ class ProfileController extends Controller
                 return $this->sendResponseApi(['message' => 'Profile not found', 'code' => 404]);
             }
 
-            return $this->sendResponseApi(['data' => $profile, 'code' => 200]);
+            return $this->getDetailData(new ProfileResource($profile));
         } catch (\Exception $e) {
             return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
         }
@@ -81,9 +83,38 @@ class ProfileController extends Controller
             if (!$profile) {
                 return $this->sendResponseApi(['message' => 'Profile not found', 'code' => 404]);
             }
-            Cache::put('verified_profile_for_user_' . auth()->id(), $profile->id, now()->addMinutes(30));
 
-            return $this->sendResponseApi(['data' => $profile, 'message' => 'Password is correct', 'code' => 200]);
+            return $this->sendResponseApi(['data' => new ProfileResource($profile), 'message' => 'Password is correct', 'code' => 200]);
+        } catch (\Exception $e) {
+            return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
+        }
+    }
+
+    public function addFavorite(Request $request)
+    {
+        try {
+            $data = CommonService::getModel('Favorite')->create([
+                'movie_id' => $request->movieId,
+                'profile_id' => $request->profileId
+            ]);
+
+            return $this->sendResponseApi(['data' => $data, 'message' => 'Add Success', 'code' => 200]);
+        } catch (\Exception $e) {
+            return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
+        }
+    }
+
+    public function removeFavorite(Request $request)
+    {
+        try {
+            $data = CommonService::getModel('Favorite')-> getByMovieAndProfile($request->movieId, $request->profileId);
+
+            if ($data) {
+                $data->delete();
+                return $this->sendResponseApi(['message' => 'Remove Success', 'code' => 200]);
+            }
+
+            return $this->sendResponseApi(['message' => 'Favorite not found', 'code' => 404]);
         } catch (\Exception $e) {
             return $this->sendResponseApi(['error' => $e->getMessage(), 'code' => 500]);
         }
