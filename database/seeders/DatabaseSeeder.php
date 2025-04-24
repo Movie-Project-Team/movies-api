@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        $this->call(GenreSeeder::class);
-        $this->call(LanguagesSeeder::class);
+        // $this->call(GenreSeeder::class);
+        // $this->call(LanguagesSeeder::class);
         $this->call(User::class);
         $this->call(Profile::class);
         $this->call(RoleSeeder::class);

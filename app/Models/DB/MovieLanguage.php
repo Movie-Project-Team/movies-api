@@ -9,6 +9,8 @@ class MovieLanguage extends Model
 {
     use HasFactory;
 
+    protected $table = 'movie_language';
+
     protected $fillable = [
         'movie_id',
         'language_id',

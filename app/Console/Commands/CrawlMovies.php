@@ -173,6 +173,10 @@ class CrawlMovies extends Command
         $serversBatch = [];
         $episodesBatch = [];
         $serverEpisodesBatch = [];
+        $languageBatch = [];
+        $languageMovieBatch = [];
+        $genresBatch = [];
+        $genresMovieBatch = [];
 
         $requests = function() use ($slugs, $client, $detailUrl) {
             foreach ($slugs as $slug) {
@@ -184,7 +188,7 @@ class CrawlMovies extends Command
 
         $pool = new Pool($client, $requests(), [
             'concurrency' => 75,
-            'fulfilled'   => function (ResponseInterface $res) use (&$moviesBatch, &$serversBatch, &$episodesBatch, &$serverEpisodesBatch){
+            'fulfilled'   => function (ResponseInterface $res) use (&$moviesBatch, &$serversBatch, &$episodesBatch, &$serverEpisodesBatch, &$languageBatch, &$languageMovieBatch, &$genresBatch, &$genresMovieBatch){
                 $body = json_decode($res->getBody(), true);
                 $movie = $body['movie'];
                 
@@ -233,12 +237,42 @@ class CrawlMovies extends Command
                         'link_download' => $episode['link_m3u8'],
                         'link_watch' => $episode['link_embed'],
                     ];
+                }
 
+                foreach ($movie['category'] as $genre) {
+                    if (isset($genre['slug'])) { 
+                        $genresBatch[] = [
+                            'title' => $genre['name'],
+                            'slug' => $genre['slug'],
+                        ];
+    
+                        $genresMovieBatch[] = [
+                            'genre_id' => null,
+                            'movie_id' => null,
+                            'movie_slug' => $movie['slug'],
+                            'genres_slug' => $genre['slug'],
+    
+                        ];
+                    }
+                }
 
+                foreach ($movie['country'] as $language) {
+                    if (isset($language['slug'])) {
+                        $languageBatch[] = [
+                            'title' => $language['name'],
+                            'slug' => $language['slug'],
+                        ];
+                        $languageMovieBatch[] = [
+                            'language_id' => null,
+                            'movie_id' => null,
+                            'movie_slug' => $movie['slug'],
+                            'language_slug' => $language['slug'],
+                        ];
+                    }
                 }
 
                 if (count($moviesBatch) >= 100) {
-                    $this->insertData($moviesBatch, $serversBatch, $episodesBatch, $serverEpisodesBatch);
+                    $this->insertData($moviesBatch, $serversBatch, $episodesBatch, $serverEpisodesBatch, $genresBatch, $genresMovieBatch, $languageBatch, $languageMovieBatch);
                     $moviesBatch = $serversBatch = $episodesBatch = $serverEpisodesBatch = [];
                 }
             },
@@ -253,9 +287,9 @@ class CrawlMovies extends Command
         $this->info("Hoàn thành thêm " . count($slugs) . " phim trong {$executionTime} giây");
     }
 
-    private function insertData(array $moviesBatch, array $serversBatch, array $episodesBatch, array $serverEpisodesBatch)
+    private function insertData(array $moviesBatch, array $serversBatch, array $episodesBatch, array $serverEpisodesBatch, array $genresBatch, array $genresMovieBatch, array $languageBatch, array $languageMovieBatch)
     {
-        DB::transaction(function () use ($moviesBatch, $serversBatch, $episodesBatch, $serverEpisodesBatch) {
+        DB::transaction(function () use ($moviesBatch, $serversBatch, $episodesBatch, $serverEpisodesBatch,$genresBatch, $genresMovieBatch, $languageBatch, $languageMovieBatch) {
             foreach (array_chunk($moviesBatch, 500) as $chunk) {
                 CommonService::getModel('Movies')->upsertBulk($chunk, ['slug']);
                 unset($chunk);
@@ -316,7 +350,65 @@ class CrawlMovies extends Command
                 gc_collect_cycles();
             }
 
-            $moviesBatch = $serversBatch = $episodesBatch = $serverEpisodesBatch = [];
+            // Insert/update genres
+            foreach (array_chunk($genresBatch, 500) as $chunk) {
+                CommonService::getModel('Genres')->upsertBulk($chunk, ['slug']);
+                unset($chunk);
+                gc_collect_cycles();
+            }
+
+            $genreSlug = array_column($genresBatch, 'slug');
+            $genreMap = DB::table('genres')
+                ->whereIn('slug', $genreSlug)
+                ->pluck('id', 'slug')
+                ->all();
+            // file_put_contents(storage_path('logs/pool-debug.log'), json_encode($genreMap) . PHP_EOL, FILE_APPEND);
+            $filteredGenres = [];
+            foreach ($genresMovieBatch as $gm) {
+                if (isset($movieMap[$gm['movie_slug']])) {
+                    $gm['movie_id'] = $movieMap[$gm['movie_slug']];
+                    $gm['genre_id'] = $genreMap[$gm['genres_slug']];
+                    unset($gm['movie_slug'], $gm['genres_slug']);
+                    $filteredGenres[] = $gm;
+                }
+            }
+            $genresMovieBatch = $filteredGenres;
+            foreach (array_chunk($genresMovieBatch, 500) as $chunk) {
+                CommonService::getModel('MovieGenre')->upsertBulk($chunk, ['movie_id', 'genre_id']);
+                unset($chunk);
+                gc_collect_cycles();
+            }
+
+            // Insert/update language
+            foreach (array_chunk($languageBatch, 500) as $chunk) {
+                CommonService::getModel('Languages')->upsertBulk($chunk, ['slug']);
+                unset($chunk);
+                gc_collect_cycles();
+            }
+
+            $languageSlug = array_column($languageBatch, 'slug');
+            $languageMap = DB::table('languages')
+                ->whereIn('slug', $languageSlug)
+                ->pluck('id', 'slug')
+                ->all();
+
+            $filtereLanguage = [];
+            foreach ($languageMovieBatch as $lm) {
+                if (isset($movieMap[$lm['movie_slug']])) {
+                    $lm['movie_id'] = $movieMap[$lm['movie_slug']];
+                    $lm['language_id'] = $languageMap[$lm['language_slug']];
+                    unset($lm['movie_slug'], $lm['language_slug']);
+                    $filtereLanguage[] = $lm;
+                }
+            }
+            $languageMovieBatch = $filtereLanguage;
+            foreach (array_chunk($languageMovieBatch, 500) as $chunk) {
+                CommonService::getModel('MovieLanguage')->upsertBulk($chunk, ['movie_id', 'language_id']);
+                unset($chunk);
+                gc_collect_cycles();
+            }
+
+            $moviesBatch = $serversBatch = $episodesBatch = $serverEpisodesBatch = $genresBatch = $genresMovieBatch = $languageBatch = $languageMovieBatch = [];
         });
         gc_collect_cycles();
     }

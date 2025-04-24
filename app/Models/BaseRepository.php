@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use Illuminate\Pagination\Paginator;
@@ -264,6 +265,42 @@ abstract class BaseRepository
         }
 
         return $data;
+    }
+
+    public function createOrPassBulk(array $items, array $uniqueKeys)
+    {
+        $model = $this->_db;
+        $table = $model->getTable();
+
+        // Tạo một danh sách các khóa duy nhất từ mảng item
+        $existing = DB::table($table)
+            ->where(function ($query) use ($items, $uniqueKeys) {
+                foreach ($items as $item) {
+                    $query->orWhere(function ($q) use ($item, $uniqueKeys) {
+                        foreach ($uniqueKeys as $key) {
+                            $q->where($key, $item[$key]);
+                        }
+                    });
+                }
+            })
+            ->get()
+            ->map(function ($item) use ($uniqueKeys) {
+                return implode('-', array_map(fn($key) => $item->$key, $uniqueKeys));
+            })
+            ->toArray();
+
+        // Lọc ra các bản ghi chưa tồn tại
+        $filtered = array_filter($items, function ($item) use ($uniqueKeys, $existing) {
+            $identifier = implode('-', array_map(fn($key) => $item[$key], $uniqueKeys));
+            return !in_array($identifier, $existing);
+        });
+
+        // Insert nếu còn bản ghi mới
+        if (!empty($filtered)) {
+            $model->insert($filtered);
+        }
+
+        return true;
     }
 
     public function createOrGetData($attributes, $options = [])
