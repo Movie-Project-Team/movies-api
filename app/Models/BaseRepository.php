@@ -57,11 +57,11 @@ abstract class BaseRepository
     }
 
     /**
-     * @param $query
-     * @param $conditions
-     * @param $type
-     * @return mixed
-     */
+    * @param $query
+    * @param $conditions
+    * @param $type
+    * @return mixed
+    */
     private function checkCondition($query, $conditions, $type = 'where')
     {
         $arrOperation = ['<=', '>=', '<', '>', '<>', '!=', 'LIKE', 'NOTIN', 'NOTNULL'];
@@ -185,20 +185,20 @@ abstract class BaseRepository
 
     public function createMultiOrPass($multiParams)
     {
-        $results = [];
-
+        $results = []; 
+    
         foreach ($multiParams as $params) {
             $data = $this->findByAttributes($params);
-
+    
             if (!empty($data)) {
                 continue;
             } else {
-                $data = $this->_db->create($params);
+                $data = $this->_db->create($params); 
             }
-
+    
             $results[] = $data;
         }
-
+    
         return $results;
     }
 
@@ -242,6 +242,16 @@ abstract class BaseRepository
         /////////////////////////////////////////////////
         // return $this->_db->upsert($data, $uniqueColumns, $updateColumns);
     }
+
+    public function upsertBulk(array $items, array $uniqueKeys)
+    {
+        $model = $this->_db;
+        $columns = array_keys($items[0]);
+        $updateColumns = array_diff($columns, $uniqueKeys);
+        
+        return $model->upsert($items, $uniqueKeys, $updateColumns);
+    }
+    
 
     public function createOrPass($attributes, $options = [])
     {

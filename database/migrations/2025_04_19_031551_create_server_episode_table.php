@@ -18,9 +18,9 @@ return new class extends Migration
             $table->foreignId('server_id')->references('id')->on('server')->onDelete('cascade');
             $table->string('name');
             $table->string('slug');
-            $table->string('filename');
-            $table->string('link_download');
-            $table->string('link_watch');
+            $table->string('filename', 512)->unique();
+            $table->string('link_download')->nullable();
+            $table->string('link_watch')->nullable();
             $table->timestamps();
         });
     }

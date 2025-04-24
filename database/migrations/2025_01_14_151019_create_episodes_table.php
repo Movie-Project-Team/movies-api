@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -29,6 +30,8 @@ return new class extends Migration
             $table->timestamp('deleted_at')->nullable();
             $table->unsignedInteger('deleted_by')->nullable();
         });
+
+        DB::statement('CREATE UNIQUE INDEX episodes_title_unique ON episodes (title(255))');
     }
 
     /**
