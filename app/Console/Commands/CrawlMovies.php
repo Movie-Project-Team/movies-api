@@ -216,27 +216,29 @@ class CrawlMovies extends Command
                     'produce_by' => isset($movie['director']) ? implode(',', $movie['director']) : '',
                 ];
 
-                $server = $body['episodes'][0] ?? [];
-                $serversBatch[] = [
-                    'name' => $server['server_name'],
-                    'kind' => $server['server_name']
-                ];
+                $server = $body['episodes'] ?? [];
+                foreach ($server as $item) {
+                    $serversBatch[] = [
+                        'name' => $item['server_name'],
+                        'kind' => $item['server_name']
+                    ];
 
-                foreach ($server['server_data'] as $episode) {
-                    $episodesBatch[] = [
-                        'slug'     => $episode['slug'],
-                        'movie_id' => null,
-                        'movie_slug' => $movie['slug'],
-                        'title'    => $episode['filename'],
-                    ];
-                    $serverEpisodesBatch[] = [
-                        'slug' => $episode['slug'],
-                        'name' => $episode['name'],
-                        'server_name' => $server['server_name'],
-                        'filename' => $episode['filename'],
-                        'link_download' => $episode['link_m3u8'],
-                        'link_watch' => $episode['link_embed'],
-                    ];
+                    foreach ($item['server_data'] as $episode) {
+                        $episodesBatch[] = [
+                            'slug'     => $episode['slug'],
+                            'movie_id' => null,
+                            'movie_slug' => $movie['slug'],
+                            'title'    => $episode['filename'],
+                        ];
+                        $serverEpisodesBatch[] = [
+                            'slug' => $episode['slug'],
+                            'name' => $episode['name'],
+                            'server_name' => $item['server_name'],
+                            'filename' => $episode['filename'],
+                            'link_download' => $episode['link_m3u8'],
+                            'link_watch' => $episode['link_embed'],
+                        ];
+                    }
                 }
 
                 foreach ($movie['category'] as $genre) {

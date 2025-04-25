@@ -18,6 +18,11 @@ class Movies extends BaseRepository
             'item' => null,
             'page' => null,
             'keyword' => '',
+            'lang' => '',
+            'gen' => '',
+            'year' => '',
+            'type' => '',
+            'status' => '',
             'orderBy' => [
                 'updated_at' => Constants::ORDER_BY_DESC,
             ],
@@ -40,6 +45,51 @@ class Movies extends BaseRepository
                 });
 
                 // $query->orWhereRaw("MATCH(title, name) AGAINST(? IN BOOLEAN MODE)", [$keyword]);
+            };
+        }
+
+        if (!empty($params['lang'])) {
+            $where[] = function ($query) use ($params) {
+                $query->whereHas('languages', function ($q) use ($params) {
+                    $q->where('slug', $params['lang']);
+                });
+            };
+        }
+
+        if (!empty($params['gen'])) {
+            $where[] = function ($query) use ($params) {
+                $query->whereHas('genres', function ($q) use ($params) {
+                    $q->where('slug', $params['gen']);
+                });
+            };
+        }
+
+        if (!empty($params['year'])) {
+            if (strpos($params['year'], 'truoc-') === 0) {
+                $yearBefore = (int) substr($params['year'], strlen('truoc-'));
+                $where[] = function ($query) use ($yearBefore) {
+                    $query->where('year', '<', $yearBefore);
+                };
+            } else {
+                $where[] = function ($query) use ($params) {
+                    $query->where('year', $params['year']);
+                };
+            }
+        }
+
+        if (!empty($params['type'])) {
+            $where[] = function ($query) use ($params) {
+                $query->where('type', $params['type']);
+            };
+        }
+
+        if (!empty($params['status']) && $params['status'] === 'hoan-thanh') {
+            $where[] = function ($query) {
+                $query->where('status', Constants::STATUS_MOVIE_COMPLETED);
+            };
+        } elseif (!empty($params['status']) && $params['status'] === 'đang-chieu') {
+            $where[] = function ($query) {
+                $query->where('status', Constants::STATUS_MOVIE_ONGOING);
             };
         }
 

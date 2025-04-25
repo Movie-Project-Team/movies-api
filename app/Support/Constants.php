@@ -56,4 +56,11 @@ final class Constants {
         self::ROOM_STATUS_OPEN,
         self::ROOM_STATUS_CLOSE
     ];
+
+    public const STATUS_MOVIE_COMPLETED = "completed";
+    public const STATUS_MOVIE_ONGOING = "ongoing";
+    public const STATUS_MOVIE_LIST = [
+        self::STATUS_MOVIE_COMPLETED,
+        self::STATUS_MOVIE_ONGOING
+    ];
 }

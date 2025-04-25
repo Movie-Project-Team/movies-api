@@ -31,6 +31,8 @@ class MovieResource extends JsonResource
             'slug' => $this->slug,
             'thumbnail' => $this->thumbnail,
             'poster' => $this->poster,
+            'languages' => LanguageResource::collection($this->languages)->toArray($request),
+            'genres' => GenreResource::collection($this->genres)->toArray($request),
             'episodes' => ServerResource::collection($this->servers_grouped_by_name)
         ];
     }

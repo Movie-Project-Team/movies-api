@@ -41,6 +41,7 @@ class Movies extends Model
     {
         return $this->hasMany(Episodes::class, 'movie_id');
     }
+
     
     public function actors(): BelongsToMany
     {
@@ -54,7 +55,7 @@ class Movies extends Model
     
     public function languages(): BelongsToMany
     {
-        return $this->belongsToMany(Genres::class, 'movie_language', 'movie_id', 'language_id');
+        return $this->belongsToMany(Languages::class, 'movie_language', 'movie_id', 'language_id');
     }
     
     public function images(): BelongsToMany
@@ -77,7 +78,7 @@ class Movies extends Model
         return $this->hasMany(WatchHistory::class, 'movie_id');
     }
 
-    // public function servers()
+        // public function servers()
     // {
     //     return $this->hasManyThrough(
     //         Server::class,

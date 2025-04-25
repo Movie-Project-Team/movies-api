@@ -17,11 +17,21 @@ class MovieController extends Controller
             $page = $request->input('page', 1);
             $item = $request->input('item', 10);
             $keyword = $request->input('keyword', '');
+            $language = $request->input('lang', '');
+            $genre = $request->input('gen', '');
+            $type = $request->input('type', '');
+            $status = $request->input('status', '');
+            $year = $request->input('year', '');
     
             $data = CommonService::getModel('Movies')->getList([
                 'page' => $page,
                 'item' => $item,
                 'keyword' => $keyword,
+                'lang' => $language,
+                'gen' => $genre,
+                'type' => $type,
+                'status' => $status,
+                'year' => $year,
             ]);
     
             return $this->getListPaginate(MovieLiteResource::collection($data));
