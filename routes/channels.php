@@ -23,7 +23,11 @@ use Illuminate\Support\Facades\Cache;
 Broadcast::channel('room.{id}', function ($user, $id) {
     $profileId = Cache::get('verified_profile_for_user_' . $user->id);
     $profile = CommonService::getModel('Profile')->getDetail($user->id);
-    return new ProfileResource($profile);
+
+    return [
+        'id' => $profile->id,
+        'name' => $profile->name ?? $user->name,
+    ];
 });
 
 
