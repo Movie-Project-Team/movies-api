@@ -36,6 +36,7 @@ class RoomController extends Controller
                 'name' => $request->name,
                 'host_id' => $request->profileId,
                 'is_locked' => $request->isLocked,
+                'movie_id' => $request->movieId,
                 'password' => $request->password,
                 'capacity' => $request->capacity,
                 'thumbnail_url' => $thumbUrl

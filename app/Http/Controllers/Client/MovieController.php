@@ -89,4 +89,5 @@ class MovieController extends Controller
             return $this->sendErrorApi($e->getMessage());
         }
     }
+    
 }
