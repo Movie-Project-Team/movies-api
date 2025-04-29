@@ -7,6 +7,7 @@ use App\Notifications\MailTemplate;
 use App\Services\CommonService;
 use App\Support\Constants;
 use App\Support\Helper;
+use Illuminate\Support\Facades\Log;
 
 class VerifyUserListener
 {
@@ -22,11 +23,9 @@ class VerifyUserListener
             'is_active' => Constants::STATUS_ACTIVE
         ]);
 
-        CommonService::getModel('Profile')->create([
-            'user_id' => $event->userId,
-            'name' => Constants::PROFILE_NAME_ADULT,
+        CommonService::getModel('Profile')->update([
             'password' => $password
-        ]);
+        ], $user->profile->id);
 
         $user->notify(new MailTemplate('verify_user_success',[
             'password' => $password,

@@ -52,7 +52,7 @@
 <body>
 <div class="email-container">
     <div class="header">
-        <img src="{{ asset('images/logo.png') }}" alt="Logo Website Phim">
+        <img src="https://dreamland-movie.netlify.app/images/logo.png" alt="Logo Website Phim">
         <div class="title">XÁC THỰC TÀI KHOẢN THÀNH CÔNG</div>
     </div>
 

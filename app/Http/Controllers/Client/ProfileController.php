@@ -11,6 +11,8 @@ use App\Http\Resources\Client\FavouriteResource;
 use App\Http\Resources\Client\ProfileResource;
 use App\Services\CommonService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 
 class ProfileController extends Controller
 {

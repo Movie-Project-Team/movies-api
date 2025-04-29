@@ -3,7 +3,7 @@
 use App\Http\Resources\Client\ProfileResource;
 use App\Services\CommonService;
 use Illuminate\Support\Facades\Broadcast;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,8 +21,8 @@ use Illuminate\Support\Facades\Cache;
 // });
 
 Broadcast::channel('room.{id}', function ($user, $id) {
-    $profileId = Cache::get('verified_profile_for_user_' . $user->id);
-    $profile = CommonService::getModel('Profile')->getDetail($user->id);
+    $profileId = Request::header('X-Profile-Id');
+    $profile = CommonService::getModel('Profile')->getDetail($profileId);
     return new ProfileResource($profile);
 });
 

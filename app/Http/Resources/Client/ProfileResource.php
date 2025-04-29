@@ -20,6 +20,7 @@ class ProfileResource extends JsonResource
             'birthday' => $this->birthday,
             'gender' => $this->gender,
             'phone' => $this->phone,
+            'avatar' => $this->avatar,
             'favorites' => MovieLiteResource::collection($this->favorites)->toArray($request),
             'created_at' => $this->created_at,
         ];

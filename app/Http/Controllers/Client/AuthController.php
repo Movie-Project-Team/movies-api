@@ -13,6 +13,7 @@ use App\Support\Constants;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Arr;
 
 class AuthController extends Controller
 {
@@ -27,6 +28,13 @@ class AuthController extends Controller
 
             $user = CommonService::getModel('User')->create($data);
             $token = $user->createToken('auth_token')->plainTextToken;
+
+            // create temp profile
+            CommonService::getModel('Profile')->create([
+                'user_id' => $user->id,
+                'name' => $request->name,
+                'avatar' => Arr::random(config('image.profile_thumb'))
+            ]);
 
             // send otp
             event(new SendOtpEvent($user));
@@ -53,7 +61,7 @@ class AuthController extends Controller
             }
 
             $accessToken = $user->createToken('auth_token');
-            $accessToken->accessToken->expires_at = Carbon::now()->addHours(1);
+            $accessToken->accessToken->expires_at = Carbon::now()->addHours(12);
             $accessToken->accessToken->save();
             
             $token = $accessToken->plainTextToken;
