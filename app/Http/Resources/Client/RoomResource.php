@@ -23,7 +23,7 @@ class RoomResource extends JsonResource
             'capacity' => $this->capacity,
             'status' => $this->status,
             'host' => new ProfileResource($this->host),
-            'movie' => new MovieLiteResource($this->movie),
+            'movie' => new MovieResource($this->movie),
             'created_at' => Helper::formatDate($this->created_at , 'd-m-Y H:i'),
         ];
     }
